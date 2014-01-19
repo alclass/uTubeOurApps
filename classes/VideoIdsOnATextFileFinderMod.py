@@ -71,7 +71,7 @@ class VideoIdsOnFolderFilenamesFinder(object):
 
   def get_all_folder_filenames_with_a_videoid(self):
     filenames = []
-    for youtubeid in self.videoids_and_extractors_for_folderfilenames_dict:
+    for videoid in self.videoids_and_extractors_for_folderfilenames_dict:
       videoid_extractor = self.videoids_and_extractors_for_folderfilenames_dict[videoid]
       filenames.append(videoid_extractor.get_filename())
     return filenames
@@ -164,6 +164,12 @@ class VideoIdsOnATextFileFinder(VideoIdsOnFolderFilenamesFinder):
       except ValueError:
         continue
 
+  def get_videoids_and_extractors_for_textfile_dict(self, reread=False):
+    if self.videoids_and_extractors_for_textfile_dict != None and not reread:
+      return self.videoids_and_extractors_for_textfile_dict
+    self.extract_videoids_from_textfile(reread)
+    return self.videoids_and_extractors_for_textfile_dict
+    
   def find_videoids_on_textfile_missing_on_folder_files(self, reread=False):
     '''
     '''
