@@ -183,6 +183,11 @@ class VideoIdsOnATextFileFinder(VideoIdsOnFolderFilenamesFinder):
     self.find_videoids_on_textfile_missing_on_folder_files(reread)
     return self.videoids_on_textfile_missing_on_folder_files
 
+  def get_videoids_and_extractors_from_textfile(self, reread=False):
+    if self.videoids_and_extractors_for_textfile_dict == None or reread:
+      self.extract_videoids_from_textfile(reread)
+    return self.videoids_and_extractors_for_textfile_dict
+
   def get_videoids_from_textfile(self, reread=False):
     if self.videoids_and_extractors_for_textfile_dict == None or reread:
       self.extract_videoids_from_textfile(reread)

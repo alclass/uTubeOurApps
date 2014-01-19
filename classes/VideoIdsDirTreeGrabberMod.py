@@ -17,8 +17,10 @@ class VideoIdsDirTreeGrabber(object):
 
   def set_basepath(self, basepath):
     if basepath == None or not os.path.isdir(basepath):
+      # default it to the current folder
       self.basepath = os.path.abspath('.')
-    self.basepath = basepath
+    else:
+      self.basepath = basepath
     print 'basepath', self.basepath
     
   def walk_uptree(self):
