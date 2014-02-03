@@ -3,9 +3,9 @@
 '''
 '''
 import codecs, os, sys
-from FilenameVideoidExtractorMod import FilenameVideoidExtractor
 import __init__
-from VideoIdsOnATextFileFinderMod import VideoIdsOnATextFileFinder
+from classes.FilenameVideoidExtractorMod import FilenameVideoidExtractor
+from classes.VideoIdsOnATextFileFinderMod import VideoIdsOnATextFileFinder
 #import local_settings as ls 
 
 class SelectedVideoIdPagesComparer(object):
@@ -13,7 +13,7 @@ class SelectedVideoIdPagesComparer(object):
   def __init__(self):
     pass
 
-  def extractVideoidsFromATextFileMod(self):
+  def extractVideoidsFromATextFile(self):
     filename = sys.argv[1]
     current_dir = os.path.abspath('.')
     file_abspath = os.path.join(current_dir, filename)

@@ -35,4 +35,10 @@ def _insert_parent_dir_to_path_if_needed():
   except OSError:
     pass
 
+this_file_path = os.path.abspath(__file__)
+THIS_DIR_PATH, _ = os.path.split(this_file_path)
+add_pythonpath(THIS_DIR_PATH)
+THIS_DIR_PATH = THIS_DIR_PATH + '/uTubeIdsDjango'
+add_pythonpath(THIS_DIR_PATH)
+
 _insert_parent_dir_to_path_if_needed()

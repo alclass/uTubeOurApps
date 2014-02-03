@@ -50,7 +50,8 @@ class VideoidsGrabberAndDownloader(object):
   '''
   
   DEFAULT_TXT_FILE = 'youtube-ids.txt'
-  PREFIX_TO_LS_R_CONTENTS_TEXT_FILE = 'z_ls-R_contents'
+  PREFIX_TO_LS_R_CONTENTS_TEXT_FILE = ls.PREFIX_TO_LS_R_CONTENTS_TEXT_FILE
+  # PREFIX_TO_LS_R_CONTENTS_TEXT_FILE = 'z_ls-R_contents'
   MAX_N_TRIES = 3
   
   def __init__(self, youtubeids_filename=None):
