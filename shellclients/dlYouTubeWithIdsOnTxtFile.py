@@ -35,7 +35,14 @@ The 3 steps below further explain the functionality of this script:
 from dlYouTubeMissingVideoIdsOnLocalDir import VideoIdsComparer # a class
 import __init__
 from classes.VideoIdsOnATextFileFinderMod import VideoIdsOnATextFileFinder
-import local_settings as ls 
+import local_settings as ls
+
+re_valid_youtube_videoid_str = '[A-Za-z0-9_\-]{11}'
+re_valid_youtube_videoid_comp = re.compile(re_valid_youtube_videoid_str)
+def is_video_well_formed(videoid):
+  if re_valid_youtube_videoid_comp.match(videoid):
+    return True
+  return False
 
 class VideoidsGrabberAndDownloader(object):
   '''
@@ -106,6 +113,8 @@ class VideoidsGrabberAndDownloader(object):
           continue
         if len(vid) > 11:
           vid = vid[:11]
+        if not is_video_well_formed(vid):
+          continue
         if vid not in self.videoids_to_download: 
           self.videoids_to_download.append(vid)
       except IndexError: # if line[0] above raises it in case line is empty
@@ -151,9 +160,6 @@ class VideoidsGrabberAndDownloader(object):
     n_of_split_index_errors = 0
     while current_abspath not in ['/', '', ' ']:
       try:
-        pp = current_abspath.split('/')
-        current_abspath = '/'.join(pp[:-1])
-        # current_abspath is now parent_dir
         if os.path.isdir(current_abspath):
           dir_contents = os.listdir(current_abspath)
           for dir_content in dir_contents:
@@ -162,6 +168,8 @@ class VideoidsGrabberAndDownloader(object):
         else:
           # parent_dir does not exist, break from while
           break  
+        pp = current_abspath.split('/')
+        current_abspath = '/'.join(pp[:-1]) # current_abspath is now parent_dir
       except IndexError:
         n_of_split_index_errors += 1
         if n_of_split_index_errors > 2:
