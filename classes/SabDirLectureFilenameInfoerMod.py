@@ -6,10 +6,12 @@ FilenameLecturerMod.py
 import os, re, string, sys
 
 import __init__
-from uTubeIdsDjango.uTubeIdsDjApp.models import SabDirInstructorDj
-from uTubeIdsDjango.uTubeIdsDjApp.models import SabDirCourseDj
-from uTubeIdsDjango.uTubeIdsDjApp.models import SabDirLectureDj
-from uTubeIdsDjango.uTubeIdsDjApp.models import SabDirVideoFilenameDj
+#===============================================================================
+# from uTubeIdsDjango.uTubeIdsDjApp.models import SabDirInstructorDj
+# from uTubeIdsDjango.uTubeIdsDjApp.models import SabDirCourseDj
+# from uTubeIdsDjango.uTubeIdsDjApp.models import SabDirLectureDj
+# from uTubeIdsDjango.uTubeIdsDjApp.models import SabDirVideoFilenameDj
+#===============================================================================
 
 
 ALLOWED_CHARS_IN_YOUTUBEVIDEOID = string.ascii_letters + string.digits + '_-'
@@ -46,32 +48,9 @@ def is_youtube_videoid_good(videoid):
 class NotAFilenameSabDirLectureError(ValueError):
   pass
 
-courses_dict = {}
-
-class SabDirLectureInfoer(object):
-  
-  def __init__(self, coursename=None, instructors=None, lecture_title=None, lecture_number=None):
-    self.coursename     = coursename
-    self.instructors    = instructors
-    self.lecture_title  = lecture_title
-    self.lecture_number = lecture_number
-
-  def get_instructors_str(self):
-    outstr = ''
-    if self.instructors == None:
-      return ''
-    for instructor in self.instructors:
-      outstr += '%s & ' %instructor
-    outstr = outstr[ : -3 ]
-    return outstr 
-    
-  def __str__(self):
-    outstr = '''Course: [%(coursename)s]
-    Instructors: [%(instructors_str)s]
-    Lecture:     [%(lecture_number)d]
-    Title:       [%(lecture_title)s]''' %{'coursename':self.coursename, 'instructors_str':self.get_instructors_str(),'lecture_title':self.lecture_title,'lecture_number':self.lecture_number,'lecture_part':self.lecture_part}
-    return outstr
-
+from SabDirCourseInfoerMod        import SabDirCourseInfoer
+from SabDirLectureInfoerMod       import SabDirLectureInfoer
+from SabDirKnowledgeAreaInfoerMod import SabDirKnowledgeAreaInfoer
 class SabDirLectureFilenameInfoer(SabDirLectureInfoer):
   
   def __init__(self, filename):
@@ -80,7 +59,7 @@ class SabDirLectureFilenameInfoer(SabDirLectureInfoer):
     self.lecture_part = 0
     #self.videoid   = None
     self.videoid = '99999999999'
-    self.rel_dir = None
+    self.relpath = None
     self.set_filename(filename)
     self.decompose_filename_into_lecture_attribs()
 
@@ -100,24 +79,24 @@ class SabDirLectureFilenameInfoer(SabDirLectureInfoer):
   def decompose_filename_into_lecture_attribs(self):
     pos_i =  self.filename.find(' _i ')
     if pos_i > -1:
-      self.coursename = self.filename[ : pos_i ]
+      coursename = self.filename[ : pos_i ]
+      self.sabdir_course = SabDirCourseInfoer.get_sabdir_course_by_name_or_create_it(coursename)
     else:
       # return
-      raise NotAFilenameSabDirLectureError, 'filename %s NotAFilenameSabDirLecture (str/marker _i is missing)' %self.filename 
+      raise NotAFilenameSabDirLectureError, 'filename %s NotAFilenameSabDirLecture (str/marker _i is missing)' %self.filename
     pos_aula = self.filename.find(' _Aula ')
     self.instructors = []
     if pos_aula > -1:
       instructors_str = self.filename[ pos_i + len(' _i ') : pos_aula ]
       if instructors_str.find('&'):
-        self.instructors = instructors_str.split('&')
+        self.sabdir_course.instructors = instructors_str.split('&')
       else:
-        self.instructors = [instructors_str]
+        self.sabdir_course.instructors = [instructors_str]
     else:
       # return
       raise NotAFilenameSabDirLectureError, 'filename %s NotAFilenameSabDirLecture (str/marker _Aula is missing)' %self.filename 
-    for instructor in self.instructors:
+    for instructor in self.sabdir_course.instructors:
       instructor = instructor.lstrip(' ').rstrip(' ')
-    courses_dict[self.coursename] = self.instructors    
     # test there is a videoid at the end
     extensionless_fn, self.extension = os.path.splitext(self.filename)
     videoid_exists = False
@@ -143,7 +122,16 @@ class SabDirLectureFilenameInfoer(SabDirLectureInfoer):
       number_as_str = number_re_find.group(1)
       self.lecture_number = int(number_as_str) # because \d+ is used in RegExp, it's guaranteed not to raise ValueError against int() 
     else:
-      raise NotAFilenameSabDirLectureError, 'filename %s NotAFilenameSabDirLecture (Lecture Number after marker _Aula is missing)' %self.filename 
+      raise NotAFilenameSabDirLectureError, 'filename %s NotAFilenameSabDirLecture (Lecture Number after marker _Aula is missing)' %self.filename
+    self.sabdir_course.add_lecture(self.make_lecture_obj())
+
+  def set_knowledge_area_to_course_via_relpath(self):
+    k_area = SabDirKnowledgeAreaInfoer.get_knowledge_area_by_relpath(self.relpath)
+    self.sabdir_course.knowledge_area = k_area 
+     
+  def make_lecture_obj(self):
+    sabdir_lecture = SabDirLectureInfoer(self.lecture_title, self.lecture_number, self.sabdir_course)
+    return sabdir_lecture
       
   def set_filename(self, filename):
     if filename == None:
@@ -202,46 +190,48 @@ class SabDirLectureFilenameInfoer(SabDirLectureInfoer):
     except IndexError:
       self.videoid = None
 
-  def save_dj_sabdir_filename(self):
-    '''
-    This method transfers the object's attributes to its equivalent
-      Django model object, so that it may be persisted onto a database
-    '''
-    instructor_str = self.get_instructors_str()
-    try:
-      dj_instructor = SabDirInstructorDj.objects.get(tarjaname=instructor_str)
-    except SabDirInstructorDj.DoesNotExist:
-      dj_instructor = SabDirInstructorDj()
-      dj_instructor.tarjaname = instructor_str 
-      #dj_instructor.flush()
-      dj_instructor.commit()
-    try:
-      dj_course = SabDirCourseDj.objects.get(coursename=self.coursename)
-    except SabDirCourseDj.DoesNotExist:
-      dj_course = SabDirCourseDj()
-      dj_course.coursename = self.coursename 
-      dj_course.instructor = dj_instructor 
-      dj_course.commit() 
-    try:
-      dj_lecture = SabDirLectureDj.objects.get(course=dj_course, seq_order=self.lecture_number)
-    except SabDirLectureDj.DoesNotExist:
-      dj_lecture           = SabDirLectureDj()
-      dj_lecture.course    = dj_course  
-      dj_lecture.title     = self.lecture_title  
-      dj_lecture.seq_order = self.lecture_number  
-      dj_lecture.commit()
-    try: 
-      dj_videofilename = SabDirVideoFilenameDj.objects.get(lecture=dj_lecture, part=self.lecture_part)
-    except SabDirVideoFilenameDj.DoesNotExist:
-      dj_videofilename = SabDirVideoFilenameDj()
-      dj_videofilename.lecture = dj_lecture
-      dj_videofilename.part = self.lecture_part
-      dj_videofilename.videoid = self.videoid
-      dj_videofilename.extension = self.extension
-      if self.rel_dir != None:
-        dj_videofilename.rel_dir = self.rel_dir
-        dj_videofilename.commit() 
-      dj_videofilename.commit()
+  #=============================================================================
+  # def save_dj_sabdir_filename(self):
+  #   '''
+  #   This method transfers the object's attributes to its equivalent
+  #     Django model object, so that it may be persisted onto a database
+  #   '''
+  #   instructor_str = self.get_instructors_str()
+  #   try:
+  #     dj_instructor = SabDirInstructorDj.objects.get(tarjaname=instructor_str)
+  #   except SabDirInstructorDj.DoesNotExist:
+  #     dj_instructor = SabDirInstructorDj()
+  #     dj_instructor.tarjaname = instructor_str 
+  #     #dj_instructor.flush()
+  #     dj_instructor.commit()
+  #   try:
+  #     dj_course = SabDirCourseDj.objects.get(coursename=self.coursename)
+  #   except SabDirCourseDj.DoesNotExist:
+  #     dj_course = SabDirCourseDj()
+  #     dj_course.coursename = self.coursename 
+  #     dj_course.instructor = dj_instructor 
+  #     dj_course.commit() 
+  #   try:
+  #     dj_lecture = SabDirLectureDj.objects.get(course=dj_course, seq_order=self.lecture_number)
+  #   except SabDirLectureDj.DoesNotExist:
+  #     dj_lecture           = SabDirLectureDj()
+  #     dj_lecture.course    = dj_course  
+  #     dj_lecture.title     = self.lecture_title  
+  #     dj_lecture.seq_order = self.lecture_number  
+  #     dj_lecture.commit()
+  #   try: 
+  #     dj_videofilename = SabDirVideoFilenameDj.objects.get(lecture=dj_lecture, part=self.lecture_part)
+  #   except SabDirVideoFilenameDj.DoesNotExist:
+  #     dj_videofilename = SabDirVideoFilenameDj()
+  #     dj_videofilename.lecture = dj_lecture
+  #     dj_videofilename.part = self.lecture_part
+  #     dj_videofilename.videoid = self.videoid
+  #     dj_videofilename.extension = self.extension
+  #     if self.rel_dir != None:
+  #       dj_videofilename.rel_dir = self.rel_dir
+  #       dj_videofilename.commit() 
+  #     dj_videofilename.commit()
+  #=============================================================================
 
   #@ooverride
   def __str__(self):
@@ -250,106 +240,29 @@ class SabDirLectureFilenameInfoer(SabDirLectureInfoer):
     outstr += '\nLecture Part = [%d]' %self.lecture_part
     outstr += '\nExtension = [%s]' %self.extension
     outstr += '\nVideoid   = [%s]' %self.videoid
+    outstr += '\nrelpath   = [%s]' %self.relpath
     return outstr
-
-
-  @staticmethod
-  def validate_and_return_the_11char_youtube_videoid_or_None(videoid):
-    if videoid == None:
-      return None
-    elif len(videoid) != 11:
-      return None
-    videoid_good = is_youtube_videoid_good(videoid)
-    if not videoid_good:
-      return None
-    return videoid  
-  
+ 
     
 class TestFixedData:
   
-  utube_test_videoid   = '0yZNJHae3QM'
-  utube_test_title     = 'Direito Civil - Obrigações, Contratos e Responsabilidade Civil para o Exame de Ordem'
-  utube_test_extension = 'mp4'
-  utube_test_filename  = None
+  pass
 
   def __init__(self):
-    self.form_filename()
+    pass
   
   def form_filename(self):
-    self.utube_test_filename = '%s-%s.%s' %(self.utube_test_title, self.utube_test_videoid, self.utube_test_extension)
+    pass
     
 
 import unittest
 class TestFilenameVideoidExtractor(unittest.TestCase):
   
   def setUp(self):
-    self.VIDEOID_CHAR_LEN = 11
-    self.fixed_data = TestFixedData()
-    self.videoid_extractor = FilenameVideoidExtractor(self.fixed_data.utube_test_filename)
+    pass
 
   def test_1_fixed_videoid_charlength_should_equal_11_etal(self):
-    self.assertEqual(self.VIDEOID_CHAR_LEN, len(self.fixed_data.utube_test_videoid))
-    test_videoid = 'abc123abc12'
-    self.assertTrue(is_youtube_videoid_good(test_videoid))
-    test_videoid = '12345678901'
-    self.assertEqual(len(test_videoid), YOUTUBE_VIDEOID_CHARLENGTH)
-    self.assertFalse(is_youtube_videoid_good(test_videoid))
-      
-  def test_2_extract_videoid(self):
-    '''
-    This test is to cover the helper 
-      generate_nonrepeat_sha1sum() unittest method above,
-      this is not a business rule, so to say, unittest
-    '''
-    returned_videoid = self.videoid_extractor.get_videoid()
-    self.assertEqual(returned_videoid, self.fixed_data.utube_test_videoid)
-
-  def test_3_compare_filename_extension_and_title(self):
-    self.assertEqual(self.videoid_extractor.get_filename(),             self.fixed_data.utube_test_filename)
-    self.assertEqual(self.videoid_extractor.get_dot_extension(), '.'  + self.fixed_data.utube_test_extension)
-    self.assertEqual(self.videoid_extractor.get_title_before_videoid(), self.fixed_data.utube_test_title)
-
-  def test_4_get_None_videoid(self):
-    test_videoid_extractor = FilenameVideoidExtractor('blah blah as filename')
-    should_be_None = test_videoid_extractor.get_videoid()
-    self.assertIsNone(should_be_None)
-    
-  def test_5_raise_for_invalid_filename_as_None_or_dot(self):
-    self.assertRaises(ValueError, FilenameVideoidExtractor, None)
-    self.assertRaises(ValueError, FilenameVideoidExtractor, '.')
-
-  def test_6_noraise_with_nonvideoid_filename(self):
-    test_videoid_extractor = FilenameVideoidExtractor('None')
-    self.assertIsInstance(test_videoid_extractor, FilenameVideoidExtractor)
-    test_videoid_extractor = FilenameVideoidExtractor('.abc.')
-    self.assertIsInstance(test_videoid_extractor, FilenameVideoidExtractor)
-    self.assertIsNone(test_videoid_extractor.get_videoid())
-    self.assertEqual(test_videoid_extractor.get_dot_extension(), '.')
-    self.assertEqual(test_videoid_extractor.get_extensionless_filename(), '.abc')
-    self.assertIsNone(test_videoid_extractor.get_title_before_videoid())
-
-  def test_7_fetch_a_filename_that_is_exactly_a_11char_videoid(self):
-    test_videoid = 'abc123abc12'
-    test_videoid_extractor = FilenameVideoidExtractor(test_videoid)
-    self.assertIsInstance(test_videoid_extractor, FilenameVideoidExtractor)
-    self.assertIsNone(test_videoid_extractor.get_dot_extension())
-    self.assertEqual(test_videoid_extractor.get_extensionless_filename(), test_videoid_extractor.get_filename())
-    self.assertEqual(test_videoid_extractor.get_videoid(), test_videoid)
-
-  def test_8_fetch_a_filename_that_a_12char_videoid_but_misses_the_dash(self):
-    test_videoid = '+abc123abc12'
-    test_videoid_extractor = FilenameVideoidExtractor(test_videoid)
-    self.assertIsInstance(test_videoid_extractor, FilenameVideoidExtractor)
-    self.assertIsNone(test_videoid_extractor.get_dot_extension())
-    self.assertEqual(test_videoid_extractor.get_extensionless_filename(), test_videoid_extractor.get_filename())
-    self.assertIsNone(test_videoid_extractor.get_videoid())
-    
-  def test_9_some_filenames_with_extractable_videoid(self):
-    test_videoid_filenames = ['  \tasASe3_fd-_.mp4\t\n','     -badAe3_fd-_.mp4  \t']
-    for filename in test_videoid_filenames:
-      test_videoid_extractor = FilenameVideoidExtractor(filename)
-      self.assertIsNotNone(test_videoid_extractor.get_videoid())
-      self.assertTrue(test_videoid_extractor.get_videoid() in filename)
+    pass
 
 
 def unittests():
