@@ -17,7 +17,7 @@ import __init__
 ALLOWED_CHARS_IN_YOUTUBEVIDEOID = string.ascii_letters + string.digits + '_-'
 youtubevideoid_having_only_allowed_chars_lambda = lambda s : s in ALLOWED_CHARS_IN_YOUTUBEVIDEOID
 str_having_only_number_digits_lambda = lambda s : s in string.digits
-YOUTUBE_VIDEOID_CHARLENGTH = 11   
+#YOUTUBE_VIDEOID_CHARLENGTH = 11   
 # FORBIDDEN_CHARS_IN_YOUTUBEVIDEOID = ' !@#$%&*()+=Çç/:;.,[]{}|\\ \'"'
 # youtubevideoid_having_some_forbidden_char_lambda = lambda s : s in FORBIDDEN_CHARS_IN_YOUTUBEVIDEOID   
 
@@ -52,6 +52,14 @@ from SabDirCourseInfoerMod        import SabDirCourseInfoer
 from SabDirLectureInfoerMod       import SabDirLectureInfoer
 from SabDirKnowledgeAreaInfoerMod import SabDirKnowledgeAreaInfoer
 class SabDirLectureFilenameInfoer(SabDirLectureInfoer):
+
+  MARKER_FOR_INSTRUCTORS       = ' _i '
+  MARKER_FOR_PART              = ' _pN ;'
+  MARKER_FOR_PART_BEGINNING    = ' _p'
+  MARKER_FOR_LECTURE_SIZESPAN = ' _Aula N '
+  MARKER_FOR_LECTURE_BEGINNING = ' _Aula '
+  YT_VIDEOID_CHARSIZE        = 11
+  YT_VIDEOID_CHARSIZE_PLUS_1 = YT_VIDEOID_CHARSIZE + 1
   
   def __init__(self, filename):
     super(SabDirLectureFilenameInfoer, self).__init__() # set attribs after decomposing them from filename
@@ -77,17 +85,17 @@ class SabDirLectureFilenameInfoer(SabDirLectureInfoer):
   #=============================================================================
 
   def decompose_filename_into_lecture_attribs(self):
-    pos_i =  self.filename.find(' _i ')
+    pos_i =  self.filename.find(self.MARKER_FOR_INSTRUCTORS)
     if pos_i > -1:
       coursename = self.filename[ : pos_i ]
       self.sabdir_course = SabDirCourseInfoer.get_sabdir_course_by_name_or_create_it(coursename)
     else:
       # return
       raise NotAFilenameSabDirLectureError, 'filename %s NotAFilenameSabDirLecture (str/marker _i is missing)' %self.filename
-    pos_aula = self.filename.find(' _Aula ')
+    pos_aula = self.filename.find(self.MARKER_FOR_LECTURE_BEGINNING)
     self.instructors = []
     if pos_aula > -1:
-      instructors_str = self.filename[ pos_i + len(' _i ') : pos_aula ]
+      instructors_str = self.filename[ pos_i + len(self.MARKER_FOR_INSTRUCTORS) : pos_aula ]
       if instructors_str.find('&'):
         self.sabdir_course.instructors = instructors_str.split('&')
       else:
@@ -100,20 +108,21 @@ class SabDirLectureFilenameInfoer(SabDirLectureInfoer):
     # test there is a videoid at the end
     extensionless_fn, self.extension = os.path.splitext(self.filename)
     videoid_exists = False
-    if len(extensionless_fn) > 11:
-      videoid_chunk = extensionless_fn[ -12 : ]
+    if len(extensionless_fn) > self.YT_VIDEOID_CHARSIZE:
+      videoid_chunk = extensionless_fn[ - self.YT_VIDEOID_CHARSIZE_PLUS_1 : ]
       if videoid_chunk.startswith('-'):
         videoid_chunk = videoid_chunk[1:]
         if is_videoid_well_formed(videoid_chunk):
           videoid_exists = True
-    self.lecture_title = extensionless_fn[ pos_aula + len(' _Aula N ') : ]
+          
+    self.lecture_title = extensionless_fn[ pos_aula + len(self.MARKER_FOR_LECTURE_SIZESPAN) : ]
     if videoid_exists:
-      self.lecture_title = self.lecture_title[ : -12 ]
-      self.videoid       = self.lecture_title[ -11 : ]
+      self.lecture_title = self.lecture_title[ : - self.YT_VIDEOID_CHARSIZE_PLUS_1 ]
+      self.videoid       = extensionless_fn[ - self.YT_VIDEOID_CHARSIZE : ]
     # verify lecture_title has ' _p<n> ;'
     parts_re_find = re_for_lecture_parts_comp.search(self.filename)
     if parts_re_find:
-      pos_pp = self.lecture_title.find(' _p')
+      pos_pp = self.lecture_title.find(self.MARKER_FOR_PART_BEGINNING)
       self.lecture_title = self.lecture_title[ : pos_pp ]
       part_as_str = parts_re_find.group(1)
       self.lecture_part = int(part_as_str)
@@ -274,10 +283,23 @@ def process():
   filenames = []
   filename = 'Direito Internacional Humanitário _i Maurício Fariña _Aula 1 Direito Humanitário - Conceitos e Distinções-U9QYgLb4kDo.mp4'
   filenames.append(filename)
-  filename = 'Direito Internacional Humanitário _i Maurício Fariña _Aula 5 O Brasil nas Operações de Paz-AXO9p0naktA.mp4'
+
+  filename = 'Direito Internacional Humanitário _i Maurício Fariña _Aula 5 O Brasil nas Operações de Paz _p1 ;-AXO9p0naktA.mp4'
   filenames.append(filename)
+
+  filename = 'Direito Internacional Humanitário Maurício Fariña _Aula 5 O Brasil nas Operações de Paz _p1 ;-AXO9p0naktA.mp4'
+  filenames.append(filename)
+
+
+  filename = 'Direito Internacional Humanitário _i Maurício Fariña _Aula 5 O Brasil nas Operações de Paz _p2 ;-AXO9p0naktA.mp4'
+  filenames.append(filename)
+
   for filename in filenames:
-    lecture = FilenameLecturer(filename)
+    try:
+      lecture = SabDirLectureFilenameInfoer(filename)
+    except NotAFilenameSabDirLectureError:
+      print 'NotAFilenameSabDirLectureError: ', filename 
+    print '-'*40
     print lecture
 
 if __name__ == '__main__':

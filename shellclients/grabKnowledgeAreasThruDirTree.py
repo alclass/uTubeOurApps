@@ -1,13 +1,35 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 '''
+  grabKnowledgeAreasThruDirTree.py
+  This script walks folders down the directory tree, 
+    grabbing Knowledge Area names and its hierarchical connections.
+    
+  Example:
+  
+  '_a Direito Civil (sabDir videolectures)'
+    '_a Direito de Família (sabDir videolectures)'
+    '_a Direitos Reais (sabDir videolectures)'
+
+  In the example above, the knowledge area "Direito Civil" has 2 subareas, ie:
+  + "Direito de Família" and
+  + "Direitos Reais".
+  
+  The markers:
+  
+  + the "_a " is required.
+  + the ending " (sabDir videolectures)" is optional.
+  
+  Notice, in the same manner as in the lecture filename grabber scheme, 
+    that blanks must be respected ("_a " has a trailing blank and it should start the string).
+
 '''
 import codecs, os, sys
 import __init__
 from classes.SabDirKnowledgeAreaInfoerMod import SabDirKnowledgeAreaInfoer
 
 
-class UpTreeKnowledgeAreaGrabber(object):
+class DownTreeKnowledgeAreaGrabber(object):
 
   def __init__(self, basedir_abspath):
     self.dirpath_count  = 0
@@ -37,9 +59,6 @@ class TestFilenameVideoidExtractor(unittest.TestCase):
 def unittests():
   unittest.main()
 
-def process():
-  '''
-  '''
 def process():
   # basedir_abspath = sys.argv[1] 
   #SourceAndTargetBaseDirsKeeper.set_source_basepath(source_basedir_abspath)
