@@ -10,16 +10,23 @@ from classes.VideoIdsOnATextFileFinderMod import VideoIdsOnATextFileFinder
 
 class SelectedVideoIdPagesComparer(object):
 
-  def __init__(self):
-    pass
+  def __init__(self, filename):
+    self.filename = filename
+    self.videoids = [] 
+    self.extractVideoidsFromATextFile()
 
   def extractVideoidsFromATextFile(self):
-    filename = sys.argv[1]
     current_dir = os.path.abspath('.')
-    file_abspath = os.path.join(current_dir, filename)
+    file_abspath = os.path.join(current_dir, self.filename)
     finder = VideoIdsOnATextFileFinder(file_abspath)
     videoids_and_extractors_for_textfile_dict = finder.get_videoids_and_extractors_for_textfile_dict()
+    for videoid in videoids_and_extractors_for_textfile_dict:
+      self.videoids.append(videoid)
   
+  def printExtractedVideoids(self):
+    for videoid in self.videoids:
+      print videoid
+
 
 import unittest
 class TestFilenameVideoidExtractor(unittest.TestCase):
@@ -37,7 +44,9 @@ def unittests():
 def process():
   '''
   '''
-  pass
+  filename = sys.argv[1]
+  extractor = SelectedVideoIdPagesComparer(filename)
+  extractor.printExtractedVideoids()
 
 if __name__ == '__main__':
   if 'ut' in sys.argv:
