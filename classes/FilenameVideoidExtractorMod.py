@@ -25,8 +25,8 @@ def is_youtube_videoid_good(videoid):
 class FilenameVideoidExtractor(object):
   
   def __init__(self, filename):
-    self.set_filename(filename)
     self.videoid = 'INIT1234&&&'
+    self.set_filename(filename)
     
   def set_filename(self, filename):
     if filename == None:
@@ -42,7 +42,8 @@ class FilenameVideoidExtractor(object):
     self.dot_extension = None
     if dot_extension != '':
       self.dot_extension = dot_extension
-  
+    self.fetch_and_set_videoid_from_extensionless_filename()  
+
   def get_filename(self):
     return self.filename
 
@@ -95,7 +96,7 @@ class FilenameVideoidExtractor(object):
     if not videoid_good:
       return None
     return videoid  
-  
+
     
 class TestFixedData:
   

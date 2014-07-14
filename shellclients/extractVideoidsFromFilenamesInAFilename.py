@@ -7,6 +7,15 @@ import __init__
 from classes.FilenameVideoidExtractorMod import FilenameVideoidExtractor
 
 
+class Dict2(dict):
+  
+  def add(self, key):
+    if key in self.keys():
+      self[key] += 1
+      return
+    self[key] = 1
+      
+  
 class FileReader(object):
   '''
   This class aims to extract, line by line, videoids from a list of videoid-enclosing filenames
@@ -16,6 +25,7 @@ class FileReader(object):
     self.names_filename_abspath = None
     self.set_names_filename_abspath(names_filename_abspath)
     self.videoids = []
+    self.videoids_dict_repeats = Dict2()
 
   def set_names_filename_abspath(self, names_filename_abspath):
     if os.path.isfile(names_filename_abspath):
@@ -32,7 +42,10 @@ class FileReader(object):
         continue
       extractor = FilenameVideoidExtractor(line)
       videoid = extractor.get_videoid()
-      self.videoids.append(videoid)
+      if videoid not in self.videoids: 
+        self.videoids.append(videoid)
+      else:
+        self.videoids_dict_repeats.add(videoid)
 
   def print_out(self):
     print '# There are %d videoids.' %len(self.videoids)

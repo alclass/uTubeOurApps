@@ -11,6 +11,7 @@ local_settings.py
 */*.xml
 *~
 */*~
+.idea
 .project
 .pydevproject
 .settings/
