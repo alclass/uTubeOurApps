@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 '''
 '''
@@ -25,7 +25,7 @@ class SelectedVideoIdPagesComparer(object):
   
   def printExtractedVideoids(self):
     for videoid in self.videoids:
-      print videoid
+      print (videoid)
 
 
 import unittest

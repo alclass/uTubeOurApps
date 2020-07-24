@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 '''
 This script forms file youtube-ids.txt which is input for a second script that reuses youtube-dl and download the youtube videos by their id's, one at a time
@@ -42,7 +42,7 @@ def delete_sequential_txt_files(n_of_seq_txt_files):
   '''
   for seq in range(1, n_of_seq_txt_files+1):
     comm = 'rm %(seq)d.txt' %{'seq':seq}
-    print comm
+    print (comm)
     os.system(comm)
 
 txtfilename_interpolaton = '%(seq)d.txt'
@@ -52,20 +52,23 @@ def process():
   n_processed = 0
   youtube_search_files = find_youtube_sequenced_htmls()
   if len(youtube_search_files) == 0:
-    print '''No processing occurred.  The following messages are informative:
-    + There are no youtube_search_files on this folder (they should end with " - YouTube <n>.htm[l]" where <n> is a number).
-    + Please look into the directory listing to verify there is at least one of them. (In case there are any of them, please report a bug in this program.'''
+    msg = '''No processing occurred.  The following messages are informative:
+  + There are no youtube_search_files on this folder (they should end with " - YouTube <n>.htm[l]" where <n> is a number).
+  + Please look into the directory listing to verify there is at least one of them. (In case there are any of them, please report a bug in this program.
+'''
+    print (msg)
     return
   for i, youtube_search_file in enumerate(youtube_search_files):
     seq = i + 1
     txtfilename = txtfilename_interpolaton %{'seq':seq}
     if os.path.isfile(txtfilename):
-      print '''Processing  cannot continue.  The following messages are informative:
+      msg = '''Processing  cannot continue.  The following messages are informative:
       + There is a file on this folder that would be overwritten if processing continued. (This file is named "%s").
       + Please, delete it or move it outside this folder and then rerun this program.''' %txtfilename
+      print (msg)
       return
     comm = commbase %{'youtube_search_file':youtube_search_file, 'txtfilename':txtfilename}
-    print comm
+    print (comm)
     os.system(comm)
     if os.path.isfile(txtfilename):
       n_processed += 1

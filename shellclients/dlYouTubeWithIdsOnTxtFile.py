@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os, re, sys, time
 '''
@@ -31,9 +31,8 @@ The 3 steps below further explain the functionality of this script:
 
 '''
 
-
-from dlYouTubeMissingVideoIdsOnLocalDir import VideoIdsComparer # a class
-import __init__
+from shellclients.dlYouTubeMissingVideoIdsOnLocalDir import VideoIdsComparer # a class
+# import __init__
 from classes.VideoIdsOnATextFileFinderMod import VideoIdsOnATextFileFinder
 import local_settings as ls
 
@@ -84,7 +83,7 @@ class VideoidsGrabberAndDownloader(object):
     Not yet fully implemented
     '''
     files = os.listdir('.')
-    print files
+    print (files)
     idstr = 'id[=](.+)[.]'
     idstr_re = re.compile(idstr)
     vids = []
@@ -93,7 +92,7 @@ class VideoidsGrabberAndDownloader(object):
       if matchObj:
         vid = matchObj.group(1)
         if vid not in vids:
-          print 'Found vid', vid
+          print ('Found vid', vid)
           vids.append(vid)
 
   def read_ids_from_txt_file(self):
@@ -186,11 +185,11 @@ class VideoidsGrabberAndDownloader(object):
     To ask the user to confirm or not the download of all taken ids
     '''
     if len(self.videoids_to_download) > 0:
-      print 'Videoids to download:'
-      print self.videoids_to_download
-    print 'Total videoids to download:', len(self.videoids_to_download)
+      print ('Videoids to download:')
+      print (self.videoids_to_download)
+    print ('Total videoids to download:', len(self.videoids_to_download))
     if len(self.videoids_to_download) > 0:
-      ans = raw_input(' Y*/n ')
+      ans = input(' Y*/n ')
       if ans in ['n', 'N']:
         sys.exit(0)
   
@@ -209,18 +208,17 @@ class VideoidsGrabberAndDownloader(object):
     '''
     n_tries = 1
     while n_tries <= self.MAX_N_TRIES:
-      print  n_seq, 'n.of dl. so far', self.n_downloaded, 'of', len(self.videoids_to_download), 'video', vid, 'n_tries', n_tries, '[%s]' %time.ctime()
+      print  ( n_seq, 'n.of dl. so far', self.n_downloaded, 'of', len(self.videoids_to_download), 'video', vid, 'n_tries', n_tries, '[%s]' %time.ctime() )
       comm = 'youtube-dl -f 18 "http://www.youtube.com/?v=%s"' %vid
-      print comm
+      print (comm)
       ret_val = os.system(comm)
       if ret_val == 0:
         self.n_downloaded += 1
         return
-      print 'Problem with the download: waiting 3 min.'
+      print ('Problem with the download: waiting 3 min.')
       time.sleep(3*60)
       n_tries += 1
-    print 'After', self.MAX_N_TRIES, 'tries, given up downloading', vid
-
+    print ('After', self.MAX_N_TRIES, 'tries, given up downloading', vid)
 
 def process():
   youtubeids_filename = None

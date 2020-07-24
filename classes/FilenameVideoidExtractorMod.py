@@ -30,14 +30,16 @@ class FilenameVideoidExtractor(object):
     
   def set_filename(self, filename):
     if filename == None:
-      raise ValueError, "filename for FilenameVideoidExtractor()'s constructor cannot be None."
+      error_msg = "filename for FilenameVideoidExtractor()'s constructor cannot be None."
+      raise ValueError(error_msg)
     # this rule will demand the production of a script that preprocesses to guarantee there are no files with beginning or ending spaces
     filename = filename.lstrip(' \t').rstrip(' \t\r\n')
     self.filename = filename
     extensionless_filename, dot_extension = os.path.splitext(self.filename)
     if extensionless_filename == '.':
       # this is the directory itself, raise ValueError
-      raise ValueError, "filename for FilenameVideoidExtractor()'s constructor cannot be the dot directory."
+      error_msg = "filename for FilenameVideoidExtractor()'s constructor cannot be the dot directory."
+      raise ValueError(error_msg)
     self.extensionless_filename = extensionless_filename
     self.dot_extension = None
     if dot_extension != '':
@@ -193,10 +195,10 @@ def process():
   '''
   test_data = TestFixedData()
   videoid_extractor = FilenameVideoidExtractor(test_data.utube_test_filename)
-  print '-'*40
-  print 'Extracting videoid from: ', test_data.utube_test_filename
-  print 'Extracted videoid:', videoid_extractor.get_videoid()
-  print '-'*40
+  print ('-'*40)
+  print ('Extracting videoid from: ', test_data.utube_test_filename)
+  print ('Extracted videoid:', videoid_extractor.get_videoid())
+  print ('-'*40)
 
 if __name__ == '__main__':
   if 'ut' in sys.argv:

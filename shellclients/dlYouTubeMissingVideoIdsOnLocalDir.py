@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 '''
 dlYouTubeMissingVideoIdsOnLocalDir.py
@@ -18,8 +18,6 @@ Explanation:
     + it must contain 11 characters;
     + it must not have the following characters: ' ' (blank), '%' nor '.';
     + it must have at least one lowercase letter and one UPPERCASE letter.
-
-
 
 ***
 Though the following is not parameterized, here follows an example with --list-formats:
@@ -44,7 +42,7 @@ Available formats:
 import glob, logging, os, sys, time
 
 def print_and_log(line_msg):
-  print line_msg 
+  print (line_msg)
   logging.info(line_msg)
 
 BASE_COMMAND_INDIVUAL_VIDEO = 'youtube-dl -w -f 18 http://www.youtube.com/watch?v=%(videoid)s'
@@ -52,7 +50,7 @@ TWO_MIN_IN_SECS = 2 * 60
 
 def download_individual_video(videoid, p_seq=1, total_to_go=1):
   retVal = -1; loop_seq = 0
-  while retVal <> 0:
+  while retVal != 0:
     loop_seq += 1
     line_msg = '[%s] Downloading with p_seq = %d of %d' %(time.ctime(), p_seq, total_to_go); print_and_log(line_msg) 
     comm = BASE_COMMAND_INDIVUAL_VIDEO %{'videoid':videoid}
@@ -62,8 +60,8 @@ def download_individual_video(videoid, p_seq=1, total_to_go=1):
     if loop_seq > 2: # ie, it tries 3 times!
       # give up
       return 
-    if retVal <> 0:
-      print 'Pausing for 2 minutes until next issuing of youtube-dl.'
+    if retVal != 0:
+      print ('Pausing for 2 minutes until next issuing of youtube-dl.')
       time.sleep(TWO_MIN_IN_SECS)
 
 def get_videoid_from_extless_filename(extlessname):
@@ -85,8 +83,8 @@ def get_videoid_from_filename(filename):
   return None
   
 import string
-has_lowercase_lambda = lambda c : c in string.lowercase
-has_UPPERCASE_lambda = lambda c : c in string.uppercase
+has_lowercase_lambda = lambda c : c in string.ascii_lowercase
+has_UPPERCASE_lambda = lambda c : c in string.ascii_uppercase
 
 FORBIDDEN_CHARS_IN_YOUTUBEVIDEOID = '!@#$%&*()+=Çç/:;.,[]{}|\\ \'"'
 youtubevideoid_having_some_forbidden_char_lambda = lambda s : s in FORBIDDEN_CHARS_IN_YOUTUBEVIDEOID   
@@ -117,7 +115,7 @@ class VideoIdsOnFile(object):
 
   def find_videoids_on_file(self):
     self.videoids_on_file = []
-    lines = open(self.local_filename).readlines()
+    lines = open(self.local_filename, encoding='utf8').readlines()
     for line in lines:
       if line.endswith('\n'):
         line = line.rstrip('\n')
@@ -147,10 +145,10 @@ def checkEveryFileHas11CharId():
       continue
     if prefixedId.startswith('-'): 
       seq += 1
-    print seq, prefixedId
+    print (seq, prefixedId)
   # mp4's total 
   nOfMp4s = len(mp4s)
-  print 'nOfMp4s', nOfMp4s
+  print ('nOfMp4s', nOfMp4s)
 
 class VideoIdsComparer(object):
 
@@ -198,10 +196,10 @@ class VideoIdsComparer(object):
 
   def download_missing_videos(self):
     self.compareLocalIdsWithFileDB()
-    print 'Do you want to download the videos below ?'
-    print self.missing_videoids
-    print 'Total:', len(self.missing_videoids)
-    ans = raw_input('(Y/n) ? ')
+    print ('Do you want to download the videos below ?')
+    print (self.missing_videoids)
+    print ('Total:', len(self.missing_videoids))
+    ans = input('(Y/n) ? ')
     if ans in ['n', 'N']:
       return
     total_to_go = len(self.missing_videoids)

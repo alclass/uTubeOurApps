@@ -3,7 +3,7 @@
 '''
 '''
 import codecs, os, sys
-from FilenameVideoidExtractorMod import FilenameVideoidExtractor
+from classes.FilenameVideoidExtractorMod import FilenameVideoidExtractor
 import __init__
 import local_settings as ls 
 
@@ -79,7 +79,8 @@ class VideoIdsOnFolderFilenamesFinder(object):
   def get_folder_filenames_with_a_videoid_by_dot_extension(self, dot_extension=None):
     filenames = self.get_all_folder_filenames_with_a_videoid()
     if None in filenames:
-      raise ValueError, 'This is apparently a program or logic error. There is a None inside a list coming from get_all_folder_filenames_with_a_videoid()'
+      error_msg = 'This is apparently a program or logic error. There is a None inside a list coming from get_all_folder_filenames_with_a_videoid()'
+      raise ValueError(error_msg)
     return filter(filter_filenames_by_dot_extension_lambda, filenames) 
 
   def get_videoids_from_folder_filenames_listing(self):
@@ -116,7 +117,8 @@ class VideoIdsOnATextFileFinder(VideoIdsOnFolderFilenamesFinder):
     current_folder_abspath = os.path.abspath('.')
     textfile_abspath = os.path.join(current_folder_abspath, ls.VIDEOIDS_FILENAMES_INSIDE_TEXTFILENAME_DEFAULT)
     if not os.path.isfile(textfile_abspath):
-      raise OSError, 'Error: The default videoids text file (%s) does not exist.' %textfile_abspath
+      error_msg = 'Error: The default videoids text file (%s) does not exist.' %textfile_abspath
+      raise OSError(error_msg)
     self.set_videoids_text_folder_and_file_abspath_and_filename(textfile_abspath)
 
   def set_videoids_text_folder_and_file_abspath_and_filename(self, textfile_abspath):
@@ -208,16 +210,16 @@ class VideoIdsOnATextFileFinder(VideoIdsOnFolderFilenamesFinder):
     if self.videoids_on_textfile_missing_on_folder_files == None:
       self.find_videoids_on_textfile_missing_on_folder_files()
     for filename in self.videoids_on_textfile_missing_on_folder_files:
-      print filename
+      print (filename)
     files_download_total = len(self.videoids_on_textfile_missing_on_folder_files)
-    print 'Total:', files_download_total 
-    print 'Do you want to download the videos above ?'
-    ans = raw_input('(Y/n) ? ')
+    print ('Total:', files_download_total)
+    print ('Do you want to download the videos above ?')
+    ans = input('(Y/n) ? ')
     if ans in ['n', 'N']:
       return
     for i, missing_videoid in enumerate(self.videoids_on_textfile_missing_on_folder_files):
       p_seq = i + 1 
-      download_individual_video(missing_videoid, p_seq, files_download_total)
+      self.download_individual_video(missing_videoid, p_seq, files_download_total)
 
 N_OF_FILENAMES_INSIDE_TEST_VIDEOIDS_FILE = 2
 def read_test_videoids_file_create_it_if_needed(n_of_retries=0):
@@ -234,7 +236,8 @@ def read_test_videoids_file_create_it_if_needed(n_of_retries=0):
     if text_to_file == text_from_file:
       return text_to_file, videoids_file_abspath
   if n_of_retries > 0:
-    raise IOError, 'Could not read videoids file %s from disk.' %videoids_file_abspath
+    error_msg = 'Could not read videoids file %s from disk.' % videoids_file_abspath
+    raise IOError(error_msg)
   f = codecs.open(videoids_file_abspath, 'w', encoding='utf-8')
   f.write(text_to_file)
   f.close()
@@ -278,12 +281,11 @@ def process():
   '''
   filetext, videoids_file_abspath = read_test_videoids_file_create_it_if_needed()
   videoids_inside_a_file_finder = VideoIdsOnATextFileFinder(videoids_file_abspath)
-  print 'all filenames with a videoid', videoids_inside_a_file_finder.get_all_filenames_from_videoids_textfile()
-  print 'filenames with a videoid', videoids_inside_a_file_finder.get_videoids_filenames_from_textfile()
-  print 'get_total_videoids_from_textfile() =', videoids_inside_a_file_finder.get_total_videoids_from_textfile()
-  print 'get_videoids_from_textfile() =', videoids_inside_a_file_finder.get_videoids_from_textfile()
-  print 'get_videoids_on_textfile_missing_on_folder_files() =', videoids_inside_a_file_finder.get_videoids_on_textfile_missing_on_folder_files()
-  pass
+  print ('all filenames with a videoid', videoids_inside_a_file_finder.get_all_filenames_from_videoids_textfile())
+  print ('filenames with a videoid', videoids_inside_a_file_finder.get_videoids_filenames_from_textfile())
+  print ('get_total_videoids_from_textfile() =', videoids_inside_a_file_finder.get_total_videoids_from_textfile())
+  print ('get_videoids_from_textfile() =', videoids_inside_a_file_finder.get_videoids_from_textfile())
+  print ('get_videoids_on_textfile_missing_on_folder_files() =', videoids_inside_a_file_finder.get_videoids_on_textfile_missing_on_folder_files())
 
 if __name__ == '__main__':
   if 'ut' in sys.argv:
