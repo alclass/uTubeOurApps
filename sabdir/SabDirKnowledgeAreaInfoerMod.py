@@ -1,9 +1,10 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-'''
+"""
 FilenameLecturerMod.py
-'''
-import os, sys
+"""
+import sys
+
+
 class SabDirKnowledgeAreaInfoer(object):
 
   K_AREA_START_MARKER = '_a '
@@ -11,30 +12,34 @@ class SabDirKnowledgeAreaInfoer(object):
   ROOT_KA = None  # all k_areas are tree-derived from the ROOT knowledge area, search happens thru' children objects
   
   @staticmethod
-  def get_kas_by_name_recursive(k_area_name, parent_ka, kas=[]):
+  def get_kas_by_name_recursive(k_area_name, parent_ka, kas=None):
+    if kas is None:
+      kas = []
     if k_area_name in parent_ka.children_dict.keys():
-      kas.append(parent_ka.children_dict[k_area_name]) # only 1 may exist per parent, ie k area names are unique with a parent
+      # only 1 may exist per parent, ie k area names are unique with a parent
+      kas.append(parent_ka.children_dict[k_area_name])
     for child_ka in parent_ka.children_dict.values():
       kas += SabDirKnowledgeAreaInfoer.get_kas_by_name_recursive(k_area_name, child_ka, [])
     return kas
 
   @staticmethod
-  def get_kas_by_name(k_area_name, kas=[]):
+  def get_kas_by_name(k_area_name, kas=None):
+    if kas is None:
+      kas = []
     root_ka = SabDirKnowledgeAreaInfoer.get_root_knowledge_area()
     if k_area_name == root_ka.k_area_name:
       return [root_ka] # root should have a unique name, so return and look no further
-    return SabDirKnowledgeAreaInfoer.get_kas_by_name_recursive(k_area_name, root_ka, [])
+    return SabDirKnowledgeAreaInfoer.get_kas_by_name_recursive(k_area_name, root_ka, kas)
 
   @staticmethod
   def get_or_create(k_area_name, parent_k_area):
-    if parent_k_area == None:
+    if parent_k_area is None:
       parent_k_area = SabDirKnowledgeAreaInfoer.get_root_knowledge_area()
     if k_area_name in parent_k_area.children_dict.keys():
       k_area = parent_k_area.children_dict[k_area_name]
       return k_area
     k_area = SabDirKnowledgeAreaInfoer(k_area_name, parent_k_area)
     return k_area
-
 
   @staticmethod
   def return_k_area_name_if_marked_or_None(name):
@@ -106,10 +111,9 @@ class SabDirKnowledgeAreaInfoer(object):
       k_area_str = k_area_str.lstrip(' ,;-_\t').rstrip(' ,;-_\t\r\n')
     return k_area_str
 
-  @staticmethod
   @property
-  def root_ka():
-    return SabDirKnowledgeAreaInfoer.get_root_knowledge_area()
+  def root_ka(self):
+    return self.get_root_knowledge_area()
 
   def __init__(self, k_area_name, parent_ka=None):
     self.k_area_name = k_area_name
@@ -117,7 +121,7 @@ class SabDirKnowledgeAreaInfoer(object):
     self.children_dict = {}
     if self.parent_ka != None:
       self.add_self_to_parent()
-    
+
   def add_self_to_parent(self):
     self.parent_ka.children_dict[self.k_area_name] = self
     
@@ -136,7 +140,7 @@ class SabDirKnowledgeAreaInfoer(object):
       indents = '\t'*n_indents
     outstr += '%s[%s]\n' %(indents, self.k_area_name)
     k_area_names = self.children_dict.keys()
-    k_area_names.sort()
+    sorted(k_area_names)
     for k_area_name in k_area_names:
       child_ka = self.children_dict[k_area_name]
       outstr += child_ka.__str__(n_indents + 1)
@@ -149,7 +153,7 @@ class SabDirKnowledgeAreaInfoer(object):
 
   @staticmethod
   def print_recursive(k_area):
-    print k_area
+    print(k_area)
     for child_ka in k_area.children_dict.values():
       SabDirKnowledgeAreaInfoer.print_recursive(child_ka)
       
@@ -187,27 +191,24 @@ def process():
   penal = SabDirKnowledgeAreaInfoer.get_or_create(area_str, base_ka)
   SabDirKnowledgeAreaInfoer.print_all_kas()
   
-  print family.write_flat()
-  print succession.write_flat()
-  print penal.write_flat()
-  
-  
+  print(family.write_flat())
+  print(succession.write_flat())
+  print(penal.write_flat())
+
   relpath = 'Saber Direito TVJus/_a Direito Civil (videoaulas SabDir)/_a Direito de Família e Sucessório (videoaulas SabDir)/Direito da Criança e do Adolescente _i Enio Vieira Júnior'
   k_area = SabDirKnowledgeAreaInfoer.get_knowledge_area_by_relpath(relpath)
-  print relpath
-  print k_area.write_flat()
-
+  print(relpath)
+  print(k_area.write_flat())
 
   relpath = 'Saber Direito TVJus/_a Direito Civil (videoaulas SabDir)/_a Direito Contratual (videoaulas SabDir)/Teoria Geral dos Contratos _i Thiago Godoy'
   k_area = SabDirKnowledgeAreaInfoer.get_knowledge_area_by_relpath(relpath)
-  print relpath
-  print k_area.write_flat()
-  
-  
+  print(relpath)
+  print(k_area.write_flat())
+
   kas = SabDirKnowledgeAreaInfoer.get_kas_by_name('Direito Contratual')
-  print 'len(kas)', len(kas)
+  print('len(kas)', len(kas))
   for k_area in kas:
-    print k_area.write_flat()
+    print(k_area.write_flat())
 
 
 if __name__ == '__main__':

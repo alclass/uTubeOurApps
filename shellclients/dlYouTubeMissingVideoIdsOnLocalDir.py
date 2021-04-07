@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-'''
+"""
 dlYouTubeMissingVideoIdsOnLocalDir.py
+  # -*- coding: utf-8 -*-
 
 Explanation: 
   This script reads a .txt file, which has a hardcoded name z-filenames.txt
@@ -14,7 +14,7 @@ Explanation:
   Limitations:
   
     A safe rule to check whether an id is a valid videoid or not, that has not been implemented.
-    For the time being, videoids have the following checking (in function return_videoid_if_good_or_None(videoid)):
+    For the time being, videoids have the following checking (in function return_videoid_if_good_or_none(videoid)):
     + it must contain 11 characters;
     + it must not have the following characters: ' ' (blank), '%' nor '.';
     + it must have at least one lowercase letter and one UPPERCASE letter.
@@ -38,41 +38,55 @@ Available formats:
 18  :  mp4  [360x640]
 5  :  flv  [240x400]
 
-'''
-import glob, logging, os, sys, time
+"""
+import glob
+import logging
+import os
+import sys
+import time
+import string
+
 
 def print_and_log(line_msg):
-  print (line_msg)
+  print(line_msg)
   logging.info(line_msg)
+
 
 BASE_COMMAND_INDIVUAL_VIDEO = 'youtube-dl -w -f 18 http://www.youtube.com/watch?v=%(videoid)s'
 TWO_MIN_IN_SECS = 2 * 60
 
+
 def download_individual_video(videoid, p_seq=1, total_to_go=1):
-  retVal = -1; loop_seq = 0
-  while retVal != 0:
+  ret_val = -1
+  loop_seq = 0
+  while ret_val != 0:
     loop_seq += 1
-    line_msg = '[%s] Downloading with p_seq = %d of %d' %(time.ctime(), p_seq, total_to_go); print_and_log(line_msg) 
-    comm = BASE_COMMAND_INDIVUAL_VIDEO %{'videoid':videoid}
-    line_msg = 'loop_seq = %d :: %s' %(loop_seq, comm); print_and_log(line_msg) 
-    retVal = os.system(comm)
-    line_msg = 'retVal = %d' %(retVal); print_and_log(line_msg)
-    if loop_seq > 2: # ie, it tries 3 times!
+    line_msg = '[%s] Downloading with p_seq = %d of %d' % (time.ctime(), p_seq, total_to_go)
+    print_and_log(line_msg)
+    comm = BASE_COMMAND_INDIVUAL_VIDEO % {'videoid': videoid}
+    line_msg = 'loop_seq = %d :: %s' % (loop_seq, comm)
+    print_and_log(line_msg)
+    ret_val = os.system(comm)
+    line_msg = 'retVal = %d' % ret_val
+    print_and_log(line_msg)
+    if loop_seq > 2:  # ie, it tries 3 times!
       # give up
       return 
-    if retVal != 0:
-      print ('Pausing for 2 minutes until next issuing of youtube-dl.')
+    if ret_val != 0:
+      print('Pausing for 2 minutes until next issuing of youtube-dl.')
       time.sleep(TWO_MIN_IN_SECS)
+
 
 def get_videoid_from_extless_filename(extlessname):
   try:
     videoid = extlessname[-11:]
-    videoid = return_videoid_if_good_or_None(videoid)
-    if videoid != None:
+    videoid = return_videoid_if_good_or_none(videoid)
+    if videoid is not None:
       return videoid
   except IndexError:
     pass
   return None
+
 
 def get_videoid_from_filename(filename):
   try:
@@ -82,35 +96,36 @@ def get_videoid_from_filename(filename):
     pass
   return None
   
-import string
-has_lowercase_lambda = lambda c : c in string.ascii_lowercase
-has_UPPERCASE_lambda = lambda c : c in string.ascii_uppercase
 
 FORBIDDEN_CHARS_IN_YOUTUBEVIDEOID = '!@#$%&*()+=Çç/:;.,[]{}|\\ \'"'
-youtubevideoid_having_some_forbidden_char_lambda = lambda s : s in FORBIDDEN_CHARS_IN_YOUTUBEVIDEOID   
-def return_videoid_if_good_or_None(videoid):
-  if videoid == None:
+ENC64CHARS = string.digits + string.ascii_uppercase + string.ascii_lowercase + '_-'
+
+
+def filter_youtubevideoids_are_encode64(ytids):
+  return filter(lambda s: s in ENC64CHARS, ytids)
+
+
+def is_youtubevideoidword_encode64(ytidword):
+  if False in filter_youtubevideoids_are_encode64(ytidword):
+    return False
+  return True
+
+
+def return_videoid_if_good_or_none(videoid):
+  if videoid is None:
     return None
   elif len(videoid) != 11:
     return None
-  videoidlist = list(videoid)
-  boolean_result_list = map(youtubevideoid_having_some_forbidden_char_lambda, videoidlist)
-  if True in boolean_result_list:
+  if not is_youtubevideoidword_encode64(videoid):
     return None
-  #=============================================================================
-  # boolean_result_list = map(has_lowercase_lambda, videoid)
-  # if True not in boolean_result_list:
-  #   return None
-  # boolean_result_list = map(has_UPPERCASE_lambda, videoid)
-  # if True not in boolean_result_list:
-  #   return None
-  #=============================================================================
   return videoid
+
 
 class VideoIdsOnFile(object):
 
   def __init__(self, local_filename):
     self.local_filename = local_filename
+    self.videoids_on_file = []
     self.find_videoids_on_file()
 
   def find_videoids_on_file(self):
@@ -124,8 +139,8 @@ class VideoIdsOnFile(object):
       # strip extension and recompose filename without extension
       try:
         videoid = get_videoid_from_filename(line)
-        videoid = return_videoid_if_good_or_None(videoid)
-        if videoid == None:
+        videoid = return_videoid_if_good_or_none(videoid)
+        if videoid is None:
           continue
         if videoid not in self.videoids_on_file:
           self.videoids_on_file.append(videoid)
@@ -135,26 +150,30 @@ class VideoIdsOnFile(object):
   def get_videoids_on_file(self):
     return self.videoids_on_file
 
-def checkEveryFileHas11CharId():
-  mp4s = glob.glob('*.mp4'); seq=0
+
+def check_every_file_has_11charid():
+  mp4s = glob.glob('*.mp4')
+  seq = 0
   for mp4 in mp4s:
     try:
       extlessname = os.path.splitext(mp4)[0]
-      prefixedId = extlessname[-12:]
+      prefixed_id = extlessname[-12:]
     except IndexError:
       continue
-    if prefixedId.startswith('-'): 
+    if prefixed_id.startswith('-'):
       seq += 1
-    print (seq, prefixedId)
+    print(seq, prefixed_id)
   # mp4's total 
-  nOfMp4s = len(mp4s)
-  print ('nOfMp4s', nOfMp4s)
+  n_of_mp4s = len(mp4s)
+  print('nOfMp4s', n_of_mp4s)
+
 
 class VideoIdsComparer(object):
 
-  def __init__(self, local_filename = 'z-filenames.txt'):
+  def __init__(self, local_filename='z-filenames.txt'):
     self.local_filename = local_filename
     self.all_filevideoids = None
+    self.missing_videoids = []
     self.store_all_filevideoids_on_local_dir()
 
   def store_all_filevideoids_on_local_dir(self):
@@ -168,7 +187,7 @@ class VideoIdsComparer(object):
         if filename.find('.') > -1:
           extlessname = os.path.splitext(filename)[0]
         youtubeid = get_videoid_from_extless_filename(extlessname)
-        if youtubeid != None:
+        if youtubeid is not None:
           self.all_filevideoids.append(youtubeid)
       except IndexError:
         continue
@@ -181,24 +200,25 @@ class VideoIdsComparer(object):
     return mp4s
 
   def get_all_filevideoids_on_local_dir(self):
-    if self.all_filevideoids == None:
+    if self.all_filevideoids is None:
       self.store_all_filevideoids_on_local_dir()
     return self.all_filevideoids
 
-  def compareLocalIdsWithFileDB(self):
-    self.missing_videoids = []; n_missing = 0
-    videoidsObj = VideoIdsOnFile(self.local_filename)
-    for videoid in videoidsObj.get_videoids_on_file():
+  def compare_local_ids_with_filedb(self):
+    self.missing_videoids = []
+    n_missing = 0
+    videoids_obj = VideoIdsOnFile(self.local_filename)
+    for videoid in videoids_obj.get_videoids_on_file():
       if videoid not in self.all_filevideoids:
         n_missing += 1
         # print n_missing, 'VideoId', videoid, 'in file not on local dir.'
         self.missing_videoids.append(videoid)
 
   def download_missing_videos(self):
-    self.compareLocalIdsWithFileDB()
-    print ('Do you want to download the videos below ?')
-    print (self.missing_videoids)
-    print ('Total:', len(self.missing_videoids))
+    self.compare_local_ids_with_filedb()
+    print('Do you want to download the videos below ?')
+    print(self.missing_videoids)
+    print('Total:', len(self.missing_videoids))
     ans = input('(Y/n) ? ')
     if ans in ['n', 'N']:
       return
@@ -207,15 +227,18 @@ class VideoIdsComparer(object):
       p_seq = i + 1 
       download_individual_video(missing_videoid, p_seq, total_to_go)
 
+
 def download_missing_videoids():
-  video_comparer = VideoIdsComparer(local_filename = 'z-filenames.txt')
+  video_comparer = VideoIdsComparer(local_filename='z-filenames.txt')
   video_comparer.download_missing_videos()
 
+
 def process():
-  if len(sys.argv) < 2: # ie, sys.argv[0] contains the script's name and no parameter is present
+  if len(sys.argv) < 2:  # ie, sys.argv[0] contains the script's name and no parameter is present
     download_missing_videoids()
   elif sys.argv[1] == '--checkids':
-    checkEveryFileHas11CharId()
-  
+    check_every_file_has_11charid()
+
+
 if __name__ == '__main__':
   process()

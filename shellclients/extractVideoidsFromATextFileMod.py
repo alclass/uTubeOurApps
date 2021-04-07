@@ -1,21 +1,25 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-'''
-'''
-import codecs, os, sys
-import __init__
-from classes.FilenameVideoidExtractorMod import FilenameVideoidExtractor
+"""
+  # -*- coding: utf-8 -*-
+
+"""
+import os
+import sys
+# from classes.FilenameVideoidExtractorMod import FilenameVideoidExtractor
 from classes.VideoIdsOnATextFileFinderMod import VideoIdsOnATextFileFinder
-#import local_settings as ls 
+import unittest
+
+# import local_settings as ls
+
 
 class SelectedVideoIdPagesComparer(object):
 
   def __init__(self, filename):
     self.filename = filename
     self.videoids = [] 
-    self.extractVideoidsFromATextFile()
+    self.extract_videoids_from_textfile()
 
-  def extractVideoidsFromATextFile(self):
+  def extract_videoids_from_textfile(self):
     current_dir = os.path.abspath('.')
     file_abspath = os.path.join(current_dir, self.filename)
     finder = VideoIdsOnATextFileFinder(file_abspath)
@@ -23,12 +27,11 @@ class SelectedVideoIdPagesComparer(object):
     for videoid in videoids_and_extractors_for_textfile_dict:
       self.videoids.append(videoid)
   
-  def printExtractedVideoids(self):
+  def printextractedvideoids(self):
     for videoid in self.videoids:
-      print (videoid)
+      print(videoid)
 
 
-import unittest
 class TestFilenameVideoidExtractor(unittest.TestCase):
   
   def setUp(self):
@@ -41,12 +44,12 @@ class TestFilenameVideoidExtractor(unittest.TestCase):
 def unittests():
   unittest.main()
 
+
 def process():
-  '''
-  '''
   filename = sys.argv[1]
   extractor = SelectedVideoIdPagesComparer(filename)
-  extractor.printExtractedVideoids()
+  extractor.printextractedvideoids()
+
 
 if __name__ == '__main__':
   if 'ut' in sys.argv:

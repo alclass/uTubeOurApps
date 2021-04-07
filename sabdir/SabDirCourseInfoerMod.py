@@ -1,9 +1,11 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-'''
+"""
 FilenameLecturerMod.py
-'''
-import os, sys
+"""
+import sys
+import unittest
+
+
 class SabDirCourseInfoer(object):
 
   # static dict to keep all courses scraped in memory during runtime
@@ -20,7 +22,7 @@ class SabDirCourseInfoer(object):
   @staticmethod
   def get_all_sabdir_coursenames_in_alphabetic_order():
     coursenames = SabDirCourseInfoer.courses_dict.keys()
-    coursenames.sort()
+    sorted(coursenames)
     return coursenames
   
   @staticmethod
@@ -30,9 +32,9 @@ class SabDirCourseInfoer(object):
       yield sabdir_course 
 
   def __init__(self, coursename=None, instructors=None):
-    self.coursename     = coursename
-    self.instructors    = instructors
-    self.lectures_dict  = {} # key is lecture_number
+    self.coursename = coursename
+    self.instructors = instructors
+    self.lectures_dict = {}  # key is lecture_number
     self.knowledge_area = None
     
   def add_lecture(self, sabdir_lecture):
@@ -40,35 +42,35 @@ class SabDirCourseInfoer(object):
 
   def get_instructors_str(self):
     outstr = ''
-    if self.instructors == None:
+    if self.instructors is None:
       return ''
     for instructor in self.instructors:
-      outstr += '%s & ' %instructor
-    outstr = outstr[ : -3 ]
+      outstr += '%s & ' % instructor
+    outstr = outstr[: -3]
     return outstr 
 
   def get_knowledge_area_flat_str(self):
     k_area_str = ''
-    if self.knowledge_area != None:
+    if self.knowledge_area is not None:
       k_area_str = self.knowledge_area.write_flat() 
     return k_area_str
     
   def __str__(self):
-    outstr  = 'Course        : [%s]\n' %self.coursename
-    outstr += 'Instructor(s) : [%s]\n' %self.get_instructors_str()
-    outstr += 'Knowledge Area: [%s]\n' %self.get_knowledge_area_flat_str()
+    outstr = 'Course        : [%s]\n' % self.coursename
+    outstr += 'Instructor(s) : [%s]\n' % self.get_instructors_str()
+    outstr += 'Knowledge Area: [%s]\n' % self.get_knowledge_area_flat_str()
     lecture_numbers = self.lectures_dict.keys()
-    lecture_numbers.sort()
+    sorted(lecture_numbers)
     if len(lecture_numbers) == 0:
       outstr += ' * No lectures have been found for this courses.\n'
       return outstr
-    outstr += '  * This courses has the following %d lectures:\n' %len(lecture_numbers)
+    outstr += '  * This courses has the following %d lectures:\n' % len(lecture_numbers)
     for lecture_number in lecture_numbers:
       lecture = self.lectures_dict[lecture_number]
-      outstr += '  [%d] %s\n' %(lecture_number, lecture.lecture_title)
+      outstr += '  [%d] %s\n' % (lecture_number, lecture.lecture_title)
     return outstr
 
-import unittest
+
 class TestFilenameVideoidExtractor(unittest.TestCase):
   
   def setUp(self):
@@ -81,13 +83,13 @@ class TestFilenameVideoidExtractor(unittest.TestCase):
 def unittests():
   unittest.main()
 
+
 def process():
-  '''
-  '''
-  pass
+  """
+  """
   coursename = 'Direito das Sucessões'
   instructor = 'Anamaria Prates'
-  instructors = [ instructor ]
+  instructors = [instructor]
   sabdir_course = SabDirCourseInfoer(coursename, instructors)
   exec('from SabDirLectureInfoerMod import SabDirLectureInfoer')
 
@@ -103,9 +105,10 @@ def process():
   sabdir_lecture.sabdir_course = sabdir_course
   sabdir_course.add_lecture(sabdir_lecture)
 
-  print sabdir_course
-  print '&'
-  print sabdir_lecture
+  print(sabdir_course)
+  print('&')
+  print(sabdir_lecture)
+
 
 if __name__ == '__main__':
   if 'ut' in sys.argv:

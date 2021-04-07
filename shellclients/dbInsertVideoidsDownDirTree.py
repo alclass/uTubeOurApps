@@ -1,6 +1,8 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-'''
+#!/usr/bin/env python3
+"""
+  This script was originally written for the Saber Direito II Project
+  ===================================================================
+  # -*- coding: utf-8 -*-
   dbInsertVideoidsUpTree.py
   This script walks folders down the directory tree, 
     grabbing Saber Direito courses, ie, grabbing the videolecture filenames
@@ -41,20 +43,20 @@
   Notice that spaces must be respected, ie, there is a blank before and after " _i ", 
     so to the " _Aula <N> " marker and the part marker has blanks too and ends with a semicolon ";".  
 
-'''
-import codecs, os, sys
-import __init__
-#from classes.FilenameVideoidExtractorMod import FilenameVideoidExtractor
-#from classes.VideoIdsOnATextFileFinderMod import VideoIdsOnATextFileFinder
-from classes.SabDirLectureFilenameInfoerMod import NotAFilenameSabDirLectureError
-from classes.SabDirLectureFilenameInfoerMod import SabDirLectureFilenameInfoer
-from classes.SabDirKnowledgeAreaInfoerMod import SabDirKnowledgeAreaInfoer
-from classes.SabDirCourseInfoerMod import SabDirCourseInfoer
+"""
+import os
+import sys
+import unittest
+# from classes.FilenameVideoidExtractorMod import FilenameVideoidExtractor
+# from classes.VideoIdsOnATextFileFinderMod import VideoIdsOnATextFileFinder
+from sabdir import NotAFilenameSabDirLectureError
+from sabdir import SabDirLectureFilenameInfoer
+from sabdir.SabDirKnowledgeAreaInfoerMod import SabDirKnowledgeAreaInfoer
+from sabdir.SabDirCourseInfoerMod import SabDirCourseInfoer
 
-#import local_settings as ls 
 
 class DownDirTreeSabDirLectureFilenameGrabber(object):
-  '''
+  """
   The help doc-string above, for this module, explained the whole job that
     the module's script runs.
     
@@ -65,21 +67,24 @@ class DownDirTreeSabDirLectureFilenameGrabber(object):
   
   In this class, a scraping method will extract coursename, instructor(s), 
     lecture number and parts, if any.  The extension and videoid will also be extracted.
-  '''
+  """
 
   def __init__(self, basedir_abspath):
     self.lecture_seq = 0
-    self.file_count  = 0
+    self.k_area = None
+    self.file_count = 0
+    self.filenames = []
+    self.dirpath = None
     self.basedir_abspath = basedir_abspath
 
-  def get_relpath(self):
-    rel_path = self.dirpath
+  def get_relpath_after_basepath(self):
+    relpath = self.dirpath
     if self.dirpath.startswith(self.basedir_abspath):
-      relpath = self.dirpath[ len(self.basedir_abspath) : ]
+      relpath = self.dirpath[len(self.basedir_abspath):]
     return relpath
 
-  def walkDownDirTree(self):
-    for self.dirpath, dirnames, self.filenames in os.walk(self.basedir_abspath): # dirnames
+  def walk_down_dirtree(self):
+    for self.dirpath, dirnames, self.filenames in os.walk(self.basedir_abspath):  # dirnames
       # SabDirKnowledgeAreaInfoer.register_knowledges_via_its_foldernames(dirnames, self.dirpath)
       self.k_area = SabDirKnowledgeAreaInfoer.get_knowledge_area_by_relpath(self.dirpath)
       self.process_folder()
@@ -91,22 +96,22 @@ class DownDirTreeSabDirLectureFilenameGrabber(object):
       self.file_count += 1
       try:
         filename_lecture = SabDirLectureFilenameInfoer(filename)
-        filename_lecture.relpath = self.get_relpath()
-        #filename_lecture.set_knowledge_area_to_course_via_relpath()
+        filename_lecture.relpath = self.get_relpath_after_basepath()
+        # filename_lecture.set_knowledge_area_to_course_via_relpath()
         filename_lecture.sabdir_course.knowledge_area = self.k_area
-        print self.file_count, 'Processing', filename, '(Previous Lecture n. %d)' %self.lecture_seq
-        print filename_lecture.relpath
-        if  filename_lecture.sabdir_course.knowledge_area != None:
-          print filename_lecture.sabdir_course.knowledge_area.write_flat()
+        print(self.file_count, 'Processing', filename, '(Previous Lecture n. %d)' % self.lecture_seq)
+        print(filename_lecture.relpath)
+        if filename_lecture.sabdir_course.knowledge_area is None:
+          print(filename_lecture.sabdir_course.knowledge_area.write_flat())
         else:
-          print '[KA NOT FOUND]'
+          print('[KA NOT FOUND]')
         self.lecture_seq += 1
       except NotAFilenameSabDirLectureError:
         continue
       # print 'Saving to DB' 
       # dj_course = filename_lecture.save_dj_sabdir_filename()
 
-import unittest
+
 class TestFilenameVideoidExtractor(unittest.TestCase):
   
   def setUp(self):
@@ -121,25 +126,27 @@ def unittests():
 
 
 def get_basedir_abspath_from_sysargv_or_default():
-  basedir_abspath_DEFAULT = '/run/media/friend/SAMSUNG/Saber Direito TVJus/'
+  basedir_abspath_default = '/run/media/friend/SAMSUNG/Saber Direito TVJus/'
   basedir_abspath = None
   try:
     basedir_abspath = sys.argv[1]
     if not os.path.isdir(basedir_abspath):
-      basedir_abspath = basedir_abspath_DEFAULT
+      basedir_abspath = basedir_abspath_default
   except IndexError:
     pass
-  if basedir_abspath == None:
-    basedir_abspath = basedir_abspath_DEFAULT
+  if basedir_abspath is None:
+    basedir_abspath = basedir_abspath_default
   return basedir_abspath
     
+
 def process():
   basedir_abspath = get_basedir_abspath_from_sysargv_or_default() 
   grabber = DownDirTreeSabDirLectureFilenameGrabber(basedir_abspath)
-  grabber.walkDownDirTree()
+  grabber.walk_down_dirtree()
   for i, sabdir_course in enumerate(SabDirCourseInfoer.get_iterative_sabdir_courses_in_alphabetic_order()):
     seq = i + 1
-    print seq, sabdir_course
+    print(seq, sabdir_course)
+
 
 if __name__ == '__main__':
   if 'ut' in sys.argv:

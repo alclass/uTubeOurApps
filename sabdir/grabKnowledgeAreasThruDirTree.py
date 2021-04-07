@@ -1,6 +1,7 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-'''
+#!/usr/bin/env python3
+"""
+  # -*- coding: utf-8 -*-
+
   grabKnowledgeAreasThruDirTree.py
   This script walks folders down the directory tree, 
     grabbing Knowledge Area names and its hierarchical connections.
@@ -23,10 +24,11 @@
   Notice, in the same manner as in the lecture filename grabber scheme, 
     that blanks must be respected ("_a " has a trailing blank and it should start the string).
 
-'''
-import codecs, os, sys
-import __init__
-from classes.SabDirKnowledgeAreaInfoerMod import SabDirKnowledgeAreaInfoer
+"""
+import os
+import sys
+import unittest
+from sabdir.SabDirKnowledgeAreaInfoerMod import SabDirKnowledgeAreaInfoer
 
 
 class DownTreeKnowledgeAreaGrabber(object):
@@ -42,11 +44,11 @@ class DownTreeKnowledgeAreaGrabber(object):
   
   def extract_knowledge_areas(self):
       self.dirpath_count += 1
-      print self.dirpath_count, 'Processing', self.dirpath,
+      print(self.dirpath_count, 'Processing', self.dirpath,)
       k_area = SabDirKnowledgeAreaInfoer.get_knowledge_area_by_relpath(self.dirpath)
-      print k_area
+      print(k_area)
 
-import unittest
+
 class TestFilenameVideoidExtractor(unittest.TestCase):
   
   def setUp(self):
@@ -59,6 +61,7 @@ class TestFilenameVideoidExtractor(unittest.TestCase):
 def unittests():
   unittest.main()
 
+
 def process():
   # basedir_abspath = sys.argv[1] 
   #SourceAndTargetBaseDirsKeeper.set_source_basepath(source_basedir_abspath)
@@ -66,7 +69,8 @@ def process():
   basedir_abspath = '/run/media/friend/SAMSUNG/'
   grabber = UpTreeKnowledgeAreaGrabber(basedir_abspath)
   grabber.doUpTreeWalk()
-  print SabDirKnowledgeAreaInfoer.root_ka
+  print(SabDirKnowledgeAreaInfoer.root_ka)
+
 
 if __name__ == '__main__':
   if 'ut' in sys.argv:
