@@ -9,10 +9,9 @@ Explanation:
   (this filename is the video title, a '-' (dash), its videoid, then the dot extension)
   It can also read filenames that have starts with '-' (dash) before the videoid, ie,
   filenames that do not have the title part.
-  
 
   Limitations:
-  
+
     A safe rule to check whether an id is a valid videoid or not, that has not been implemented.
     For the time being, videoids have the following checking (in function return_videoid_if_good_or_none(videoid)):
     + it must contain 11 characters;
@@ -95,9 +94,8 @@ def get_videoid_from_filename(filename):
   except IndexError:
     pass
   return None
-  
 
-FORBIDDEN_CHARS_IN_YOUTUBEVIDEOID = '!@#$%&*()+=Çç/:;.,[]{}|\\ \'"'
+
 ENC64CHARS = string.digits + string.ascii_uppercase + string.ascii_lowercase + '_-'
 
 
@@ -130,7 +128,7 @@ class VideoIdsOnFile(object):
 
   def find_videoids_on_file(self):
     self.videoids_on_file = []
-    lines = open(self.local_filename, encoding='utf8').readlines()
+    lines = open(self.local_filename).readlines()
     for line in lines:
       if line.endswith('\n'):
         line = line.rstrip('\n')
