@@ -13,4 +13,4 @@ venv/
 .idea
 .project
 .pydevproject
-local_settings.py
+default_settings.py

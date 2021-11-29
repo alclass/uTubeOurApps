@@ -5,7 +5,7 @@ import os
 import sys
 from classes.FilenameVideoidExtractorMod import FilenameVideoidExtractor
 # import __init__
-import local_settings as ls 
+import default_settings as ls
 import unittest
 
 

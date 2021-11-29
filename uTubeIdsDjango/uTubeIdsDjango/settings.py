@@ -63,5 +63,5 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 import __init__
-import local_settings as ls
+import default_settings as ls
 DATABASES = ls.DATABASES

@@ -25,7 +25,7 @@ The 3 steps below further explain the functionality of this script:
     It's important to notice that not only the program looks up the current dir for id's,
       it also looks up the whole database that stores all videoids that have been
       previously recorded on the database.
-    This database search must be configured in local_settings.py, because
+    This database search must be configured in default_settings.py, because
       it can either be done by reading a z_ls-R_contents* file or a SQL database.
       (Obs: the SQL database has not yet been implements)
   
@@ -37,7 +37,7 @@ The 3 steps below further explain the functionality of this script:
 from shellclients.dlYouTubeMissingVideoIdsOnLocalDir import VideoIdsComparer  # a class
 # import __init__
 from classes.VideoIdsOnATextFileFinderMod import VideoIdsOnATextFileFinder
-import local_settings as ls
+import default_settings as ls
 
 re_valid_youtube_videoid_str = r'[A-Za-z0-9_\-]{11}'
 re_valid_youtube_videoid_comp = re.compile(re_valid_youtube_videoid_str)
@@ -163,7 +163,7 @@ class VideoidsGrabberAndDownloader:
     2nd level) the videoids that exist inside every file prefixed
       "z_ls-R_contents" every path down to / (root), excepting root itself
     3rd level) the videoids that exist on a database
-      (the database connection and config must be available on local_settings.py
+      (the database connection and config must be available on default_settings.py
     """
     self.grab_videoids_on_files_on_localdir()
     self.grab_videoids_on_root_textfiles()
